@@ -47,30 +47,93 @@ function choose(message, options) {
 // Map: Room 1 (Start) --LEFT--> Room 2 (Red Key) --BACK--> Room 3 (locked door)
 //      Room 1 --RIGHT--> Room 3
 //      Room 3: hasKey -> ESCAPED, otherwise CAUGHT
-// Every room: Cancel returns null from choose(), so show "GAME OVER" and return.
 
-// TODO(Lefa): announce the ending, then log it.
+// announce the ending, then log it.
 function endGame(message) {
+    alert(message);
+    console.log(message);
+    gameState.isGameOver = true; // Assuming Karim set this up
 }
 
-// TODO(Lefa): Room 1 - wake up in a cold server room, choose LEFT or RIGHT.
+// Room 1 - wake up in a cold server room, choose LEFT or RIGHT.
 function room1() {
+    // Use Tony's choose() helper. We pass the question and the valid options.
+    let choice = choose("ROOM 1: You wake up in a cold server room. Type 'LEFT' or 'RIGHT'.", ["left", "right"]);
+    
+    if (choice === null) {
+        endGame("GAME OVER: You gave up.");
+        return;
+    }
+
+    if (choice === "left") {
+        room2(); 
+    } else {
+        room3(); 
+    }
 }
 
-// TODO(Lefa): Room 2 - find the Red Key, then head back to the door.
+// Room 2 - find the Red Key, then head back to the door.
 function room2() {
+    let choice = choose("ROOM 2: You see a glowing Red Key on a table. Type 'TAKE' to take it, or 'BACK' to return.", ["take", "back"]);
+    
+    if (choice === null) {
+        endGame("GAME OVER: You gave up.");
+        return;
+    }
+
+    if (choice === "take") {
+        gameState.hasRedKey = true; // Karim's state variable
+        console.log("Inventory: Red Key acquired.");
+        // Automatically send them back after taking the key
+        room1(); 
+    } else {
+        room1(); 
+    }
 }
 
-// TODO(Lefa): Room 3 - locked door: escaped with the key, caught without it.
+// Room 3 - locked door: escaped with the key, caught without it.
 function room3() {
+    if (gameState.hasRedKey) {
+        endGame("SUCCESS! You used the Red Key to unlock the door and escaped the Evil AI!");
+    } else {
+        endGame("CAUGHT! The door is locked. Without a key, the Evil AI captures you. GAME OVER.");
+    }
 }
 
 // ==========================================
 // 6. GAME LOOP (Lefa)
 // ==========================================
-// TODO(Lefa): reset the game, ask the prisoner's name (Cancel quits), call room1(),
+// reset the game, ask the prisoner's name (Cancel quits), call room1(),
 // then ask confirm("Do you want to play again?") and loop while they say yes.
 function game() {
+    let playAgain = true;
+
+    while (playAgain) {
+        // Reset Karim's state variables
+        gameState.isGameOver = false;
+        gameState.hasRedKey = false;
+        
+        console.clear();
+        console.log("--- NEW GAME STARTED ---");
+
+        // Ask for player name using Tony's helper (if he made one) or standard prompt
+        // Since Tony mentioned "ask the prisoner's name" in the TODO, let's use prompt.
+        let playerName = prompt("Welcome to the Digital Fortress. What is your name, prisoner?");
+        
+        // If they press Cancel on the name prompt
+        if (playerName === null) {
+            alert("Game cancelled safely.");
+            return; 
+        }
+        
+        console.log(`Welcome, ${playerName}. Your escape begins...`);
+
+        // Start the game
+        room1();
+
+        // Replay logic
+        playAgain = confirm("The game has ended. Do you want to play again?");
+    }
 }
 
 // ==========================================
