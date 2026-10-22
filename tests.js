@@ -74,7 +74,10 @@ function runTests() {
     assertEquals(choose("test", ["left", "right"]), "left", "choose rejects invalid input and asks again");
 
     // --- TESTS FOR THE ROOMS (Lefa's Logic) ---
-    resetGame();
+    // Clear the leftover state by hand: a stubbed resetGame() must not be able to fake a pass.
+    playerName = "";
+    currentRoom = 1;
+    hasKey = false;
     queue("left", "back");
     silence(() => room1());
     assertEquals(hasKey, true, "Room 1 -> Left picks up the Red Key");
@@ -86,6 +89,7 @@ function runTests() {
     assertEquals(lastAlert.includes("CAUGHT"), true, "Right -> locked door is caught (Ending 2)");
 
     resetGame();
+    alerts.length = 0;
     queue("banana", "right");
     silence(() => room1());
     assertEquals(lastAlert.includes("CAUGHT"), true, "Invalid input does not skip the locked door");

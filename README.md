@@ -4,8 +4,9 @@ JavaScript Only - Escape the Evil AI
 A browser-based JavaScript game built as part of the Practicum assignment (bonus). No DOM, no
 build tools: the whole game runs through `alert()` / `prompt()` / `confirm()` and the console.
 
-> **Status:** the engine, room navigation, input handling and endings all work and are tested.
-> The story text in `script.js` is still marked `TODO(story)` and needs writing.
+> **Status:** not playable yet. `askPlayer()` and `choose()` work, but the game state, the rooms and
+> the loop are `TODO` stubs owned by Karim and Lefa — see the section banners in `script.js`.
+> The story text is Tony's task.
 
 ## 🚀 How to Play
 1. Open the `index.html` file in your browser.
@@ -32,6 +33,8 @@ Room 1 (Start)
 ```bash
 node tests.js
 ```
+
+Right now 4 pass and 9 fail on purpose: the failures are exactly the stubs waiting on Karim and Lefa.
 
 **Tests Included:**
 *   `resetGame()` clears the key and returns to Room 1

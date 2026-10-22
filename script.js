@@ -7,14 +7,13 @@ console.clear();
 // ==========================================
 // 2. GAME STATE (Karim)
 // ==========================================
-let playerName = "";
-let currentRoom = 1;
-let hasKey = false;
+// TODO(Karim): give these their starting values (player name, room 1, no Red Key).
+let playerName;
+let currentRoom;
+let hasKey;
 
+// TODO(Karim): reset the state above so a replay never starts with the previous round's key.
 function resetGame() {
-    playerName = "";
-    currentRoom = 1;
-    hasKey = false;
 }
 
 // ==========================================
@@ -40,59 +39,33 @@ function choose(message, options) {
 // ==========================================
 // 4. ROOMS (Lefa)
 // ==========================================
+// Map: Room 1 (Start) --LEFT--> Room 2 (Red Key) --BACK--> Room 3 (locked door)
+//      Room 1 --RIGHT--> Room 3
+//      Room 3: hasKey -> ESCAPED, otherwise CAUGHT
+// Every room: Cancel returns null from choose(), so show "GAME OVER" and return.
+
+// TODO(Lefa): announce the ending, then log it.
 function endGame(message) {
-    alert(message);
-    console.log(message);
 }
 
+// TODO(Lefa): Room 1 - wake up in a cold server room, choose LEFT or RIGHT.
 function room1() {
-    currentRoom = 1;
-    const choice = choose("TODO(story): Room 1 - you wake up in a cold server room. Two doors, one glowing red on the left, one dark on the right.", ["left", "right"]);
-    if (choice === null) return endGame("GAME OVER\n\nYou froze in the corridor until the AI rebooted. It is not impressed.");
-    if (choice === "left") return room2();
-    return room3();
 }
 
+// TODO(Lefa): Room 2 - find the Red Key, then head back to the door.
 function room2() {
-    currentRoom = 2;
-    alert("TODO(story): Room 2 - a small maintenance closet. A red key hangs on the wall.");
-    hasKey = true;
-    console.log("Picked up the Red Key.");
-    const choice = choose("TODO(story): You grab the Red Key. The only way out is back to the corridor.", ["back"]);
-    if (choice === null) return endGame("GAME OVER\n\nYou hid in the closet. The AI locked it from the outside.");
-    return room3();
 }
 
+// TODO(Lefa): Room 3 - locked door: escaped with the key, caught without it.
 function room3() {
-    currentRoom = 3;
-    if (hasKey) {
-        return endGame("ENDING 1 - YOU ESCAPED!\n\nTODO(story): The Red Key turns. The door opens and daylight hits your face.");
-    }
-    return endGame("ENDING 2 - CAUGHT!\n\nTODO(story): The door is locked. Steel shutters drop and the AI laughs.");
 }
 
 // ==========================================
-// 5. GAME LOOP
+// 5. GAME LOOP (Lefa)
 // ==========================================
+// TODO(Lefa): reset the game, ask the prisoner's name (Cancel quits), call room1(),
+// then ask confirm("Do you want to play again?") and loop while they say yes.
 function game() {
-    let again = true;
-
-    while (again) {
-        resetGame();
-
-        const name = prompt("What is your name, prisoner?");
-        if (name === null) {
-            alert("Goodbye!");
-            return;
-        }
-        playerName = name.trim() || "Prisoner";
-        console.log(`Welcome, ${playerName}. Good luck.`);
-
-        room1();
-
-        again = confirm("Do you want to play again?");
-        resetGame();
-    }
 }
 
 // ==========================================
