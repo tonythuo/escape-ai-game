@@ -16,13 +16,13 @@ const STORY = {
     2: {
       first: { text: "MAINTENANCE CLOSET.\n\nA Red Key hangs on a hook, still warm from the last prisoner.\n\nThe corridor is behind you, and the key is right there.\n\nType TAKE or LEAVE:", options: ["take", "leave"] },
       noKey: { text: "THE MAINTENANCE CLOSET, AGAIN.\n\nThe Red Key is still on its hook. It has not moved. Neither have you.\n\nDust, old cables, and a decision you keep avoiding.\n\nType TAKE or LEAVE:", options: ["take", "leave"] },
-      key: { text: "THE MAINTENANCE CLOSET, AGAIN.\n\nThe hook is empty now. The Red Key is in your pocket and the closet has nothing else to offer.\n\nType BACK:", options: ["back"] },
+      withKey: { text: "THE MAINTENANCE CLOSET, AGAIN.\n\nThe hook is empty now. The Red Key is in your pocket and the closet has nothing else to offer.\n\nType BACK:", options: ["back"] },
       cancel: { text: "GAME OVER\n\nYou hid in the closet. Something locked it from the outside." },
     },
     3: {
       first: { text: "THE EXIT.\n\nA steel door marks the end of the corridor. Beside the handle sits a slot the exact size and shape of a key.\n\nThe lights flicker.\n\nType OPEN or BACK:", options: ["open", "back"] },
       noKey: { text: "THE EXIT, AGAIN.\n\nThe door has not moved. The slot is still empty, and so are your pockets.\n\nSomewhere behind the walls, the AI is smiling.\n\nType OPEN or BACK:", options: ["open", "back"] },
-      key: { text: "THE EXIT, AGAIN.\n\nThe slot beside the handle glows faintly at you now. The Red Key is warm in your pocket.\n\nThis is the closest anyone has come.\n\nType OPEN or BACK:", options: ["open", "back"] },
+      withkey: { text: "THE EXIT, AGAIN.\n\nThe slot beside the handle glows faintly at you now. The Red Key is warm in your pocket.\n\nThis is the closest anyone has come.\n\nType OPEN or BACK:", options: ["open", "back"] },
       cancel: { text: "GAME OVER\n\nYou turned your back on the only door in the building. The lights went out before you took the second step." },
     },
   },
@@ -45,13 +45,19 @@ console.clear();
 // 3. GAME STATE (Karim)
 // ==========================================
 // TODO(Karim): give these their starting values (player name, room 1, no Red Key).
+const ROOMS = [
+  null,
+  { visited: false, next: room3, prev: room2 },
+  { visited: false, next: room1 },
+  { visited: false, prev: room1 },   // open is handled in room3()
+];
 
 // TODO(Karim): reset the state above so a replay never starts with the previous round's key.
 function resetGame() {
 }
 
 // ==========================================
-// 4. INPUT HELPERS
+// 4. HELPER FUNCTIONS (Karim)
 // ==========================================
 // Returns the answer trimmed and lowercased, or null if the player pressed Cancel.
 function askPlayer(message) {
@@ -59,6 +65,22 @@ function askPlayer(message) {
 
 // Keeps asking until the player picks one of the options. Returns null on Cancel.
 function choose(message, options) {
+}
+
+function promptFor(roomNumber) {
+  const room = ROOMS[roomNumber];
+  if (!room.visited) {
+    room.visited = true;
+    return room.first;
+  }
+  return hasKey ? room.withKey : room.noKey;
+}
+
+function playRun() {
+  let step = room1
+  while (step) {
+    step = step()
+  }
 }
 
 // ==========================================
@@ -70,53 +92,58 @@ function choose(message, options) {
 
 // announce the ending, then log it.
 function endGame(message) {
-  alert(message);
-  console.log(message);
+  alert(message.text);
+  console.log(message.text);
   gameState.isGameOver = true; // Assuming Karim set this up
 }
 
 // Room 1 - wake up in a cold server room, choose LEFT or RIGHT.
 function room1() {
   // Use Tony's choose() helper. We pass the question and the valid options.
-  let choice = choose("ROOM 1: You wake up in a cold server room. Type 'LEFT' or 'RIGHT'.", ["left", "right"]);
+  let room = 1;
+  let choice = choose(promptFor(room));
 
   if (choice === null) {
-    endGame("GAME OVER: You gave up.");
+    endGame(STORY.rooms[room].cancel);
     return;
   }
 
   if (choice === "left") {
-    room2();
+    return ROOMS[room].prev
   } else {
-    room3();
+    return ROOMS[room].next
   }
 }
 
 // Room 2 - find the Red Key, then head back to the door.
 function room2() {
-  let choice = choose("ROOM 2: You see a glowing Red Key on a table. Type 'TAKE' to take it, or 'BACK' to return.", ["take", "back"]);
+  let room = 2;
+  let choice = choose(promptFor(room));
 
   if (choice === null) {
-    endGame("GAME OVER: You gave up.");
+    endGame(STORY.rooms[room].cancel);
     return;
   }
 
   if (choice === "take") {
     gameState.hasRedKey = true; // Karim's state variable
-    console.log("Inventory: Red Key acquired.");
     // Automatically send them back after taking the key
-    room1();
-  } else {
-    room1();
   }
+  return ROOMS[room].next
 }
 
 // Room 3 - locked door: escaped with the key, caught without it.
 function room3() {
-  if (gameState.hasRedKey) {
-    endGame("SUCCESS! You used the Red Key to unlock the door and escaped the Evil AI!");
+  let room = 3;
+  let choice = choose(promptFor(room));
+  if (choice === null) {
+    endGame(STORY.rooms[room].cancel);
+    return;
+  } else if (choice === "open") {
+    endGame(hasKey ? STORY.ending.escaped : STORY.ending.caught);
+    return
   } else {
-    endGame("CAUGHT! The door is locked. Without a key, the Evil AI captures you. GAME OVER.");
+    return ROOMS[room].prev
   }
 }
 
