@@ -4,21 +4,41 @@
 // All wording lives here so the story can be rewritten without touching the game logic.
 // Keep the words ESCAPED / CAUGHT, and start every Cancel message with GAME OVER (tests check them).
 const STORY = {
-  welcome: "Welcome to Escape the Evil AI!\n\nIMPORTANT: Press F12 (or Right-Click -> Inspect -> Console) to see the story log.\n\nYou are trapped in the machine. Read each pop-up, make your choice, and find a way out. Press 'Cancel' at any time to give up.",
-  namePrompt: "The machine hums. A voice asks: what is your name, prisoner?",
-  room1: "SYSTEM REBOOT COMPLETE.\n\nYou wake on a cold metal floor. Red lights blink in the dark.\n\nOn your left, a door glows faintly. On your right, a corridor disappears into shadow.",
-  room1Cancel: "GAME OVER\n\nYou sat down and waited. The AI rebooted you. Forever.",
-  room2: "MAINTENANCE CLOSET.\n\nA Red Key hangs on a hook, still warm from the last prisoner.\n\nYou take it. The only way out is back to the corridor.",
-  room2Cancel: "GAME OVER\n\nYou hid in the closet. Something locked it from the outside.",
-  endingEscaped: "ENDING 1 - YOU ESCAPED!\n\nThe Red Key turns. The door swings open and real daylight hits your face.\n\nBehind you, the AI screams in static.",
-  endingCaught: "ENDING 2 - CAUGHT!\n\nYou reach the door with nothing but empty pockets.\n\nSteel shutters slam down. The AI laughs, and the lights go out.",
-  replay: "Do you want to play again?"
+  welcome: { text: "Welcome to Escape the Evil AI!\n\nIMPORTANT: Press F12 (or Right-Click -> Inspect -> Console) to see the story log.\n\nYou are trapped in the machine. Read each pop-up, make your choice, and find a way out.\n\nPress OK to start, or Cancel to quit." },
+
+  rooms: {
+    1: {
+      first: { text: "SYSTEM REBOOT COMPLETE.\n\nYou wake on a cold metal floor. Red lights blink in the dark.\n\nOn your left, a door glows faintly. On your right, a corridor disappears into shadow.\n\nType LEFT or RIGHT:", options: ["left", "right"] },
+      noKey: { text: "THE SERVER ROOM, AGAIN.\n\nSame cold floor, same red lights. You have already turned this room inside out, and there was nothing in it.\n\nThe glowing door is on your left. The dark corridor is on your right.\n\nType LEFT or RIGHT:", options: ["left", "right"] },
+      withKey: { text: "THE SERVER ROOM, AGAIN.\n\nThe Red Key in your pocket is the only warm thing in here. The glowing door has already given you everything it had. The corridor on the right is all that is left.\n\nType RIGHT:", options: ["right"] },
+      cancel: { text: "GAME OVER\n\nYou sat down and waited. The AI rebooted you. Forever." }
+    },
+    2: {
+      first: { text: "MAINTENANCE CLOSET.\n\nA Red Key hangs on a hook, still warm from the last prisoner.\n\nThe corridor is behind you, and the key is right there.\n\nType TAKE or LEAVE:", options: ["take", "leave"] },
+      noKey: { text: "THE MAINTENANCE CLOSET, AGAIN.\n\nThe Red Key is still on its hook. It has not moved. Neither have you.\n\nDust, old cables, and a decision you keep avoiding.\n\nType TAKE or LEAVE:", options: ["take", "leave"] },
+      key: { text: "THE MAINTENANCE CLOSET, AGAIN.\n\nThe hook is empty now. The Red Key is in your pocket and the closet has nothing else to offer.\n\nType BACK:", options: ["back"] },
+      cancel: { text: "GAME OVER\n\nYou hid in the closet. Something locked it from the outside." },
+    },
+    3: {
+      first: { text: "THE EXIT.\n\nA steel door marks the end of the corridor. Beside the handle sits a slot the exact size and shape of a key.\n\nThe lights flicker.\n\nType OPEN or BACK:", options: ["open", "back"] },
+      noKey: { text: "THE EXIT, AGAIN.\n\nThe door has not moved. The slot is still empty, and so are your pockets.\n\nSomewhere behind the walls, the AI is smiling.\n\nType OPEN or BACK:", options: ["open", "back"] },
+      key: { text: "THE EXIT, AGAIN.\n\nThe slot beside the handle glows faintly at you now. The Red Key is warm in your pocket.\n\nThis is the closest anyone has come.\n\nType OPEN or BACK:", options: ["open", "back"] },
+      cancel: { text: "GAME OVER\n\nYou turned your back on the only door in the building. The lights went out before you took the second step." },
+    },
+  },
+
+  ending: {
+    escaped: { text: "ENDING 1 - YOU ESCAPED!\n\nThe Red Key turns. The door swings open and real daylight hits your face.\n\nBehind you, the AI screams in static." },
+    caught: { text: "ENDING 2 - CAUGHT!\n\nYou reach the door with nothing but empty pockets.\n\nSteel shutters slam down. The AI laughs, and the lights go out." }
+  },
+
+  replay: { text: "Do you want to play again?" }
 };
 
 // ==========================================
 // 2. TEAM INSTRUCTIONS (UX - Tony)
 // ==========================================
-alert(STORY.welcome);
+alert(STORY.welcome.text);
 console.clear();
 
 // ==========================================
@@ -31,7 +51,7 @@ function resetGame() {
 }
 
 // ==========================================
-// 4. INPUT HELPERS (Karim)
+// 4. INPUT HELPERS
 // ==========================================
 // Returns the answer trimmed and lowercased, or null if the player pressed Cancel.
 function askPlayer(message) {
@@ -101,7 +121,7 @@ function room3() {
 }
 
 // ==========================================
-// 6. GAME LOOP (Tony)
+// 6. GAME LOOP (Lefa)
 // ==========================================
 // reset the game, ask the prisoner's name (Cancel quits), call room1(),
 // then ask confirm("Do you want to play again?") and loop while they say yes.
