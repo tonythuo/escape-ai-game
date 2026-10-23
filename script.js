@@ -69,11 +69,12 @@ function choose(message, options) {
 
 function promptFor(roomNumber) {
   const room = ROOMS[roomNumber];
+  const roomData = STORY.rooms[roomNumber];
   if (!room.visited) {
     room.visited = true;
-    return room.first;
+    return roomData.first;
   }
-  return hasKey ? room.withKey : room.noKey;
+  return hasKey ? roomData.withKey : roomData.noKey;
 }
 
 function playRun() {
@@ -110,7 +111,7 @@ function room1() {
 
   if (choice === "left") {
     return ROOMS[room].prev
-  } else {
+  } else if (choice === "right") {
     return ROOMS[room].next
   }
 }
@@ -141,18 +142,24 @@ function room3() {
     return;
   } else if (choice === "open") {
     endGame(hasKey ? STORY.ending.escaped : STORY.ending.caught);
-    return
-  } else {
+  } else if (choice === "back") {
     return ROOMS[room].prev
   }
 }
 
 // ==========================================
-// 6. GAME LOOP (Lefa)
+// 6. GAME LOOP (Tony)
 // ==========================================
 // reset the game, ask the prisoner's name (Cancel quits), call room1(),
 // then ask confirm("Do you want to play again?") and loop while they say yes.
 function game() {
+  if (!confirm(STORY.welcome.text)) return;
+  let again = true;
+  while (again) {
+    resetGame();
+    playRun();
+    again = confirm(STORY.replay.text);
+  }
 }
 
 // ==========================================
