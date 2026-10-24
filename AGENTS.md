@@ -6,7 +6,7 @@ Do not add RPS functions here.
 
 **Current state:** playable. `index.html`, `script.js`, `tests.js`, `README.md` exist; state
 (`gameState`), input helpers (`askPlayer` / `choose`), the rooms and `game()` are implemented.
-Git repo on `main`-based branches; verify with `node tests.js` (12 checks, no install needed;
+Git repo on `main`-based branches; verify with `node tests.js` (19 checks, no install needed;
 `script.js` stubs `alert`/`prompt`/`confirm`, so the game itself must stay free of test code).
 Keep it green — never "fix" a failing test by weakening the assertion.
 

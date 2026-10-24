@@ -4,7 +4,7 @@
 // All wording lives here so the story can be rewritten without touching the game logic.
 // Keep the words ESCAPED / CAUGHT, and start every Cancel message with GAME OVER (tests check them).
 const STORY = {
-  welcome: { text: "Welcome to Escape the Evil AI!\n\nIMPORTANT: Press F12 (or Right-Click -> Inspect -> Console) to see the story log.\n\nYou are trapped in the machine. Read each pop-up, make your choice, and find a way out.\n\nPress OK to start, or Cancel to quit." },
+  welcome: { text: "Welcome to Escape the Evil AI!\n\nYou are trapped in the machine. Read each pop-up, make your choice, and find a way out.\n\nPress OK to start, or Cancel to quit." },
 
   rooms: {
     1: {
@@ -32,14 +32,16 @@ const STORY = {
     caught: { text: "ENDING 2 - CAUGHT!\n\nYou reach the door with nothing but empty pockets.\n\nSteel shutters slam down. The AI laughs, and the lights go out." }
   },
 
-  replay: { text: "Do you want to play again?" }
+  replay: { text: "Do you want to play again?" },
+
+  // Shown before the page closes, on a cancelled welcome and after the last run.
+  bye: { text: "Thanks for playing Escape the Evil AI!\n\nRefresh the page (F5) to play again." }
 };
 
 // ==========================================
 // 2. TEAM INSTRUCTIONS (UX - Tony)
 // ==========================================
 // Welcome is the start gate inside game(), so nothing is shown before it.
-console.clear();
 
 // ==========================================
 // 3. GAME STATE (Karim)
@@ -114,7 +116,6 @@ function playRun() {
 // announce the ending, then log it.
 function endGame(message) {
   alert(message.text);
-  console.log(message.text);
 }
 
 // Room 1 - wake up in a cold server room, choose LEFT or RIGHT.
@@ -170,14 +171,26 @@ function room3() {
 // 6. GAME LOOP (Tony)
 // ==========================================
 // Start gate, then one run per round until the player declines a replay.
+// window.close() only works on script-opened windows; in a normal tab it is a
+// no-op, so the bye alert always tells the player to refresh to play again.
+function closePage() {
+  window.close();
+}
+
 function game() {
-  if (!confirm(STORY.welcome.text)) return;
+  if (!confirm(STORY.welcome.text)) {
+    alert(STORY.bye.text);
+    closePage();
+    return;
+  }
   let again = true;
   while (again) {
     resetGame();
     playRun();
     again = confirm(STORY.replay.text);
   }
+  alert(STORY.bye.text);
+  closePage();
 }
 
 // ==========================================

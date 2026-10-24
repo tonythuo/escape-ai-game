@@ -24,26 +24,24 @@ globalThis.prompt = (message) => {
     promptMessages.push(message);
     return answers.length ? answers.shift() : null;
 };
-globalThis.confirm = () => false;
+let confirms = [];
+// No queued confirm means the stub answered Cancel/false.
+globalThis.confirm = () => confirms.length ? confirms.shift() : false;
 
-const realClear = console.clear;
-console.clear = () => {};
+// script.js closes the page via window.close(); track the call instead of closing the test run.
+let didClose = false;
+globalThis.window = {
+    close: () => { didClose = true; },
+};
+
 vm.runInThisContext(fs.readFileSync(path.join(__dirname, "script.js"), "utf8"), { filename: "script.js" });
-console.clear = realClear;
 
 function queue(...values) {
     answers = values.slice();
 }
 
-// Games log to the console; tests keep their output readable.
-function silence(fn) {
-    const realLog = console.log;
-    console.log = () => {};
-    try {
-        return fn();
-    } finally {
-        console.log = realLog;
-    }
+function queueConfirm(...values) {
+    confirms = values.slice();
 }
 
 function runTests() {
@@ -78,7 +76,7 @@ function runTests() {
 
     // --- TESTS FOR THE ROOMS (Lefa's Logic) ---
     // Rooms return their successor, so playRun() drives them exactly like game() does.
-    const play = () => silence(() => playRun());
+    const play = () => playRun();
     const promptsInclude = (text) => promptMessages.some((message) => message.includes(text));
 
     resetGame();
@@ -120,6 +118,25 @@ function runTests() {
     }
     assertEquals(threw, false, "Cancel in Room 1 does not crash");
     assertEquals(lastAlert.startsWith("GAME OVER"), true, "Cancel in Room 1 ends the game safely");
+
+    // --- TESTS FOR THE PAGE CLOSE (the program closes after the bye alert) ---
+    // game() itself runs the welcome gate, the replay loop and the closing alert.
+    alerts.length = 0;
+    lastAlert = "";
+    didClose = false;
+    queueConfirm(false);
+    game();
+    assertEquals(lastAlert.includes("Refresh the page"), true, "Cancelling the welcome shows the goodbye alert");
+    assertEquals(didClose, true, "Cancelling the welcome closes the page");
+
+    didClose = false;
+    alerts.length = 0;
+    queueConfirm(true, false);
+    queue("left", "take", "right", "open");
+    game();
+    assertEquals(alerts.some((message) => message.includes("ESCAPED")), true, "Escape ending is announced before the goodbye");
+    assertEquals(lastAlert.includes("Refresh the page"), true, "Declining the replay shows the goodbye alert");
+    assertEquals(didClose, true, "Declining the replay closes the page");
 
     console.log(`\n📊 TEST SUMMARY: ${passed} Passed, ${failed} Failed`);
     return failed === 0;
