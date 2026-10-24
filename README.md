@@ -9,7 +9,7 @@ build tools: the whole game runs through `alert()` / `prompt()` / `confirm()` an
 
 ## 🚀 How to Play
 1. Open the `index.html` file in your browser.
-2. **Important:** Press `F12` (or `Cmd+Option+J` on Mac) to open the Developer Console. The console narrates every room and your choices.
+2. **Important:** When the game ends, press `F12` (or `Cmd+Option+J` on Mac) and scroll up in the console to relive the whole story.
 3. Follow the pop-up prompts. Press "Cancel" at any time to give up safely.
 
 ## 🗺️ The Map

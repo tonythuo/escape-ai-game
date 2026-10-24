@@ -4,7 +4,7 @@
 // All wording lives here so the story can be rewritten without touching the game logic.
 // Keep the words ESCAPED / CAUGHT, and start every Cancel message with GAME OVER (tests check them).
 const STORY = {
-  welcome: { text: "Welcome to Escape the Evil AI!\n\nIMPORTANT: Press F12 (or Cmd+Option+J on Mac) to open the console and see the story log.\n\nYou are trapped in the machine. Read each pop-up, make your choice, and find a way out.\n\nPress OK to start, or Cancel to quit." },
+  welcome: { text: "Welcome to Escape the Evil AI!\n\nYou are trapped in the machine. Read each pop-up, make your choice, and find a way out.\n\nWhen the game ends, press F12 (or Cmd+Option+J on Mac) and scroll up in the console to relive the whole story.\n\nPress OK to start, or Cancel to quit." },
 
   rooms: {
     1: {
