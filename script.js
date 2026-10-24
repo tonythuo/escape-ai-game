@@ -4,7 +4,7 @@
 // All wording lives here so the story can be rewritten without touching the game logic.
 // Keep the words ESCAPED / CAUGHT, and start every Cancel message with GAME OVER (tests check them).
 const STORY = {
-  welcome: { text: "Welcome to Escape the Evil AI!\n\nIMPORTANT: Press F12 (or Right-Click -> Inspect -> Console) to see the story log.\n\nYou are trapped in the machine. Read each pop-up, make your choice, and find a way out.\n\nPress OK to start, or Cancel to quit." },
+  welcome: { text: "Welcome to Escape the Evil AI!\n\nIMPORTANT: Press F12 (or Cmd+Option+J on Mac) to open the console and see the story log.\n\nYou are trapped in the machine. Read each pop-up, make your choice, and find a way out.\n\nPress OK to start, or Cancel to quit." },
 
   rooms: {
     1: {
@@ -28,8 +28,8 @@ const STORY = {
   },
 
   ending: {
-    escaped: { text: "ENDING 1 - YOU ESCAPED!\n\nThe Red Key turns. The door swings open and real daylight hits your face.\n\nBehind you, the AI screams in static." },
-    caught: { text: "ENDING 2 - CAUGHT!\n\nYou reach the door with nothing but empty pockets.\n\nSteel shutters slam down. The AI laughs, and the lights go out." }
+    escaped: { text: "ENDING 1 - YOU ESCAPED!\n\nThe Red Key turns. The door swings open and real daylight hits your face.\n\nBehind you, the AI screams in static.\n\nScroll up in the console to replay the whole story." },
+    caught: { text: "ENDING 2 - CAUGHT!\n\nYou reach the door with nothing but empty pockets.\n\nSteel shutters slam down. The AI laughs, and the lights go out.\n\nScroll up in the console to replay the whole story." }
   },
 
   replay: { text: "Do you want to play again?" }
@@ -70,8 +70,11 @@ function resetGame() {
 // Returns the answer trimmed and lowercased, or null if the player pressed Cancel.
 function askPlayer(message) {
   const input = prompt(message);
+  console.log(message);
   if (input === null) return null;
-  return input.trim().toLowerCase();
+  const answer = input.trim().toLowerCase();
+  console.log("> " + answer);
+  return answer;
 }
 
 // Keeps asking until the player picks one of promptData.options. Returns null on Cancel.
@@ -174,6 +177,7 @@ function game() {
   if (!confirm(STORY.welcome.text)) return;
   let again = true;
   while (again) {
+    console.log("--- NEW RUN ---");
     resetGame();
     playRun();
     again = confirm(STORY.replay.text);

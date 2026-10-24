@@ -9,7 +9,7 @@ build tools: the whole game runs through `alert()` / `prompt()` / `confirm()` an
 
 ## 🚀 How to Play
 1. Open the `index.html` file in your browser.
-2. **Important:** Press `F12` (or Right-Click -> Inspect -> Console) to open the Developer Console. The console narrates what is happening.
+2. **Important:** Press `F12` (or `Cmd+Option+J` on Mac) to open the Developer Console. The console narrates every room and your choices.
 3. Follow the pop-up prompts. Press "Cancel" at any time to give up safely.
 
 ## 🗺️ The Map
@@ -23,7 +23,7 @@ Room 1 (Start)
 *   **The "Cancel" Button:** `prompt()` returns `null` on Cancel. Every room checks for it and ends the game safely instead of crashing.
 *   **Invalid Inputs (e.g., "Banana"):** `choose()` re-asks the question and alerts the player. No progress is made and no room is skipped.
 *   **Unnecessary Spaces & Capitalization:** `.trim()` and `.toLowerCase()` mean `"  LEFT  "` works exactly like `"left"`.
-*   **Replay:** After every ending, `confirm()` asks to play again and `resetGame()` clears the player name, the current room and the Red Key, so nobody escapes with last round's key.
+*   **Replay:** After every ending, `confirm()` asks to play again and `resetGame()` clears the Red Key and all visited rooms, so nobody escapes with last round's key.
 
 ## 🧪 Unit Testing (Logic Verification)
 `tests.js` loads `script.js` with `alert`/`prompt`/`confirm` stubbed, so it needs no browser and

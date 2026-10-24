@@ -69,12 +69,13 @@ function runTests() {
     assertEquals(ROOMS[2].visited, false, "resetGame forgets visited rooms");
 
     // --- TESTS FOR askPlayer / choose (Input Handling) ---
+    // askPlayer logs the prompt and the answer to the console; silence keeps test output clean.
     queue("  LEFT  ");
-    assertEquals(askPlayer("test"), "left", "askPlayer trims and lowercases");
+    assertEquals(silence(() => askPlayer("test")), "left", "askPlayer trims and lowercases");
     queue();
-    assertEquals(askPlayer("test"), null, "askPlayer returns null on Cancel");
+    assertEquals(silence(() => askPlayer("test")), null, "askPlayer returns null on Cancel");
     queue("banana", "left");
-    assertEquals(choose({ text: "test", options: ["left", "right"] }), "left", "choose rejects invalid input and asks again");
+    assertEquals(silence(() => choose({ text: "test", options: ["left", "right"] })), "left", "choose rejects invalid input and asks again");
 
     // --- TESTS FOR THE ROOMS (Lefa's Logic) ---
     // Rooms return their successor, so playRun() drives them exactly like game() does.
