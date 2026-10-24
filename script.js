@@ -4,7 +4,7 @@
 // All wording lives here so the story can be rewritten without touching the game logic.
 // Keep the words ESCAPED / CAUGHT, and start every Cancel message with GAME OVER (tests check them).
 const STORY = {
-  welcome: { text: "Welcome to Escape the Evil AI!\n\nYou are trapped in the machine. Read each pop-up, make your choice, and find a way out.\n\nWhen the game ends, press F12 (or Cmd+Option+J on Mac) and scroll up in the console to relive the whole story.\n\nPress OK to start, or Cancel to quit." },
+  welcome: { text: "Welcome to Escape the Evil AI!\n\nYou are trapped in the machine. Read each pop-up, make your choice, and find a way out.\n\nPress OK to start, or Cancel to quit." },
 
   rooms: {
     1: {
@@ -32,7 +32,12 @@ const STORY = {
     caught: { text: "ENDING 2 - CAUGHT!\n\nYou reach the door with nothing but empty pockets.\n\nSteel shutters slam down. The AI laughs, and the lights go out.\n\nScroll up in the console to replay the whole story." }
   },
 
-  replay: { text: "Do you want to play again?" }
+  replay: { text: "Do you want to play again?" },
+
+  // Cancelling a dialog asks for confirmation first. The F12/console instructions live
+  // in the farewell, because dialogs block the page and cannot be read mid-game.
+  quitConfirm: { text: "Are you sure you want to quit?" },
+  farewell: { text: "Thanks for playing Escape the Evil AI!\n\nPress F12 (or Cmd+Option+J on Mac) and scroll up in the console to relive the whole story.\n\nRefresh the page (F5) to play again." }
 };
 
 // ==========================================
@@ -84,7 +89,12 @@ function choose(promptData) {
   let note = "";
   while (true) {
     const choice = askPlayer(note + promptData.text);
-    if (choice === null) return null;
+    if (choice === null) {
+      // Two-step quit: the player confirms before the run ends.
+      if (confirm(STORY.quitConfirm.text)) return null;
+      note = ""; // Fresh re-prompt of the same room, no stale INVALID INPUT note.
+      continue;
+    }
     if (promptData.options.includes(choice)) return choice;
     note = "INVALID INPUT - that was not one of the options.\n\n";
   }
@@ -182,6 +192,8 @@ function game() {
     playRun();
     again = confirm(STORY.replay.text);
   }
+  // Last word before the bare page shows: console instructions + how to replay.
+  alert(STORY.farewell.text);
 }
 
 // ==========================================

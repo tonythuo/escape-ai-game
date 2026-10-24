@@ -9,8 +9,8 @@ build tools: the whole game runs through `alert()` / `prompt()` / `confirm()` an
 
 ## 🚀 How to Play
 1. Open the `index.html` file in your browser.
-2. **Important:** When the game ends, press `F12` (or `Cmd+Option+J` on Mac) and scroll up in the console to relive the whole story.
-3. Follow the pop-up prompts. Press "Cancel" at any time to give up safely.
+2. Follow the pop-up prompts. Press "Cancel" to quit — the game asks you to confirm before ending.
+3. When the run ends, a farewell dialog points you to the console: press `F12` (or `Cmd+Option+J` on Mac) and scroll up to relive the whole story.
 
 ## 🗺️ The Map
 ```
@@ -20,7 +20,7 @@ Room 1 (Start)
 ```
 
 ## 🛡️ Special Cases & Edge Cases Handled
-*   **The "Cancel" Button:** `prompt()` returns `null` on Cancel. Every room checks for it and ends the game safely instead of crashing.
+*   **The "Cancel" Button:** `prompt()` returns `null` on Cancel. Every room funnels it through a confirm — OK ends the run safely with the room's GAME OVER text, Cancel returns to the same room. After the last dialog, a farewell alert explains the console and how to replay.
 *   **Invalid Inputs (e.g., "Banana"):** `choose()` re-asks the question and alerts the player. No progress is made and no room is skipped.
 *   **Unnecessary Spaces & Capitalization:** `.trim()` and `.toLowerCase()` mean `"  LEFT  "` works exactly like `"left"`.
 *   **Replay:** After every ending, `confirm()` asks to play again and `resetGame()` clears the Red Key and all visited rooms, so nobody escapes with last round's key.
@@ -33,7 +33,7 @@ Room 1 (Start)
 node tests.js
 ```
 
-All 14 pass. Run it after any change to the rooms or the loop.
+All 18 pass. Run it after any change to the rooms or the loop.
 
 **Tests Included:**
 *   `resetGame()` clears the key and returns to Room 1
@@ -43,3 +43,5 @@ All 14 pass. Run it after any change to the rooms or the loop.
 *   Right -> locked door caught ending
 *   Invalid input does not skip the key room
 *   Cancel in Room 1 ends the game without throwing
+*   Declined quit returns to the same room and does not end the run
+*   Farewell alert with console instructions is the last dialog

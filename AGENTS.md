@@ -6,7 +6,7 @@ Do not add RPS functions here.
 
 **Current state:** playable. `index.html`, `script.js`, `tests.js`, `README.md` exist; state
 (`gameState`), input helpers (`askPlayer` / `choose`), the rooms and `game()` are implemented.
-Git repo on `main`-based branches; verify with `node tests.js` (12 checks, no install needed;
+Git repo on `main`-based branches; verify with `node tests.js` (18 checks, no install needed;
 `script.js` stubs `alert`/`prompt`/`confirm`, so the game itself must stay free of test code).
 Keep it green — never "fix" a failing test by weakening the assertion.
 
@@ -25,7 +25,7 @@ Keep it green — never "fix" a failing test by weakening the assertion.
 
 ## Edge cases the grader will try
 - Whitespace and case: `" RoCk "` must play as Rock → normalize with `.trim().toLowerCase()` at the input boundary.
-- `prompt()` returns `null` on Cancel → end the game cleanly, alert, no crash, no score change.
+- `prompt()` returns `null` on Cancel → a confirm asks "Are you sure you want to quit?"; OK ends the game cleanly (alert, no crash, no score change), Cancel returns to the same room.
 - Invalid input (`"banana"`, `123`) → `alert("Invalid input")`, `continue` without scoring.
 - Draw → no score change for either side.
 - Game stops at exactly 3, never 4.

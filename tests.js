@@ -24,7 +24,9 @@ globalThis.prompt = (message) => {
     promptMessages.push(message);
     return answers.length ? answers.shift() : null;
 };
-globalThis.confirm = () => false;
+let confirms = [];
+// No queued confirm means the stub answered Cancel/false.
+globalThis.confirm = () => confirms.length ? confirms.shift() : false;
 
 const realClear = console.clear;
 console.clear = () => {};
@@ -33,6 +35,10 @@ console.clear = realClear;
 
 function queue(...values) {
     answers = values.slice();
+}
+
+function queueConfirm(...values) {
+    confirms = values.slice();
 }
 
 // Games log to the console; tests keep their output readable.
@@ -84,6 +90,7 @@ function runTests() {
 
     resetGame();
     queue("left", "take");
+    queueConfirm(true);
     play();
     assertEquals(gameState.hasKey, true, "Room 1 -> Left -> TAKE picks up the Red Key");
 
@@ -111,8 +118,10 @@ function runTests() {
     assertEquals(promptMessages.some((message) => message.includes("INVALID INPUT")), true, "Invalid input is reported in the next prompt");
 
     // --- TESTS FOR CANCEL (Grader's Favourite) ---
+    // Cancel now asks for confirmation: OK ends the run, Cancel returns to the same room.
     resetGame();
     queue();
+    queueConfirm(true);
     let threw = false;
     try {
         play();
@@ -121,6 +130,22 @@ function runTests() {
     }
     assertEquals(threw, false, "Cancel in Room 1 does not crash");
     assertEquals(lastAlert.startsWith("GAME OVER"), true, "Cancel in Room 1 ends the game safely");
+
+    resetGame();
+    promptMessages.length = 0;
+    queue(null, "left", "take", "right", "open");
+    queueConfirm(false);
+    play();
+    const room1Repeats = promptMessages.filter((message) => message.includes("SYSTEM REBOOT COMPLETE")).length;
+    assertEquals(room1Repeats, 2, "Declined quit re-prompts the same room");
+    assertEquals(lastAlert.includes("ESCAPED"), true, "Declined quit does not end the run");
+
+    // --- TEST FOR game() END TO END (replay declined) ---
+    queueConfirm(true, false);
+    queue("left", "take", "right", "open");
+    silence(() => game());
+    assertEquals(lastAlert.startsWith("Thanks for playing"), true, "Farewell alert with console instructions is the last dialog");
+    assertEquals(lastAlert.includes("F12"), true, "Farewell tells the player how to open the console");
 
     console.log(`\n📊 TEST SUMMARY: ${passed} Passed, ${failed} Failed`);
     return failed === 0;
