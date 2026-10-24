@@ -4,14 +4,11 @@ Two browser assignments, one file each. This repo is **Assignment 2 only**: "Esc
 The Rock, Paper, Scissors game (`computerPlay` / `playRound`) lives in a separate repo, `rps-game`.
 Do not add RPS functions here.
 
-**Current state:** skeleton only. `index.html`, `script.js`, `tests.js`, `README.md` exist, but the
-game state (`resetGame`), rooms and `game()` loop are empty `TODO` stubs owned by Karim and Lefa —
-only `askPlayer()` / `choose()` and Tony's welcome `alert()` are implemented. Git repo on `main`
-with no remote yet. Everything below is the plan + the targets the code must hit.
-
-Verify without a browser: `node tests.js` (13 checks, no install needed; `script.js` stubs
-`alert`/`prompt`/`confirm`, so the game itself must stay free of test code). It currently reports
-4 passed / 9 failed — the failures are the remaining work, so never "fix" them by weakening a test.
+**Current state:** playable. `index.html`, `script.js`, `tests.js`, `README.md` exist; state
+(`gameState`), input helpers (`askPlayer` / `choose`), the rooms and `game()` are implemented.
+Git repo on `main`-based branches; verify with `node tests.js` (12 checks, no install needed;
+`script.js` stubs `alert`/`prompt`/`confirm`, so the game itself must stay free of test code).
+Keep it green — never "fix" a failing test by weakening the assertion.
 
 ## Hard constraints (lecturer-graded)
 - **No DOM.** No `document.*`, no `querySelector`, no event listeners, no `innerHTML`.
