@@ -35,7 +35,7 @@ const STORY = {
   replay: { text: "Do you want to play again?" },
 
   // Shown before the page closes, on a cancelled welcome and after the last run.
-  bye: { text: "Thanks for playing Escape the Evil AI!\n\nRefresh the page (F5) to play again." }
+  bye: { text: "Thanks for playing Escape the Evil AI!" }
 };
 
 // ==========================================
