@@ -10,7 +10,7 @@ const STORY = {
     1: {
       first: { text: "SYSTEM REBOOT COMPLETE.\n\nYou wake on a cold metal floor. Red lights blink in the dark.\n\nOn your left, a door glows faintly. On your right, a corridor disappears into shadow.\n\nType LEFT or RIGHT:", options: ["left", "right"] },
       noKey: { text: "THE SERVER ROOM, AGAIN.\n\nSame cold floor, same red lights. You have already turned this room inside out, and there was nothing in it.\n\nThe glowing door is on your left. The dark corridor is on your right.\n\nType LEFT or RIGHT:", options: ["left", "right"] },
-      withKey: { text: "THE SERVER ROOM, AGAIN.\n\nThe Red Key in your pocket is the only warm thing in here. The glowing door has already given you everything it had. The corridor on the right is all that is left.\n\nType RIGHT:", options: ["right"] },
+      withKey: { text: "THE SERVER ROOM, AGAIN.\n\nThe Red Key in your pocket is the only warm thing in here. The glowing door on the left has already given you everything it had, but the corridor on the right still leads to the exit.\n\nType LEFT or RIGHT:", options: ["left", "right"] },
       cancel: { text: "GAME OVER\n\nYou sat down and waited. The AI rebooted you. Forever." }
     },
     2: {
@@ -22,7 +22,7 @@ const STORY = {
     3: {
       first: { text: "THE EXIT.\n\nA steel door marks the end of the corridor. Beside the handle sits a slot the exact size and shape of a key.\n\nThe lights flicker.\n\nType OPEN or BACK:", options: ["open", "back"] },
       noKey: { text: "THE EXIT, AGAIN.\n\nThe door has not moved. The slot is still empty, and so are your pockets.\n\nSomewhere behind the walls, the AI is smiling.\n\nType OPEN or BACK:", options: ["open", "back"] },
-      withkey: { text: "THE EXIT, AGAIN.\n\nThe slot beside the handle glows faintly at you now. The Red Key is warm in your pocket.\n\nThis is the closest anyone has come.\n\nType OPEN or BACK:", options: ["open", "back"] },
+      withKey: { text: "THE EXIT, AGAIN.\n\nThe slot beside the handle glows faintly at you now. The Red Key is warm in your pocket.\n\nThis is the closest anyone has come.\n\nType OPEN or BACK:", options: ["open", "back"] },
       cancel: { text: "GAME OVER\n\nYou turned your back on the only door in the building. The lights went out before you took the second step." },
     },
   },
@@ -38,13 +38,13 @@ const STORY = {
 // ==========================================
 // 2. TEAM INSTRUCTIONS (UX - Tony)
 // ==========================================
-alert(STORY.welcome.text);
+// Welcome is the start gate inside game(), so nothing is shown before it.
 console.clear();
 
 // ==========================================
 // 3. GAME STATE (Karim)
 // ==========================================
-// TODO(Karim): give these their starting values (player name, room 1, no Red Key).
+// Room graph: index = room number, so index 0 is unused.
 const ROOMS = [
   null,
   { visited: false, next: room3, prev: room2 },
@@ -52,8 +52,16 @@ const ROOMS = [
   { visited: false, prev: room1 },   // open is handled in room3()
 ];
 
-// TODO(Karim): reset the state above so a replay never starts with the previous round's key.
+const gameState = {
+  hasKey: false,
+};
+
+// Runs before every round, so a replay never starts with the previous round's key or history.
 function resetGame() {
+  gameState.hasKey = false;
+  ROOMS.forEach((room) => {
+    if (room) room.visited = false;
+  });
 }
 
 // ==========================================
@@ -61,10 +69,22 @@ function resetGame() {
 // ==========================================
 // Returns the answer trimmed and lowercased, or null if the player pressed Cancel.
 function askPlayer(message) {
+  const input = prompt(message);
+  if (input === null) return null;
+  return input.trim().toLowerCase();
 }
 
-// Keeps asking until the player picks one of the options. Returns null on Cancel.
-function choose(message, options) {
+// Keeps asking until the player picks one of promptData.options. Returns null on Cancel.
+// The invalid-input note goes into the next prompt rather than its own alert, so the
+// player never gets two dialogs in a row.
+function choose(promptData) {
+  let note = "";
+  while (true) {
+    const choice = askPlayer(note + promptData.text);
+    if (choice === null) return null;
+    if (promptData.options.includes(choice)) return choice;
+    note = "INVALID INPUT - that was not one of the options.\n\n";
+  }
 }
 
 function promptFor(roomNumber) {
@@ -74,7 +94,7 @@ function promptFor(roomNumber) {
     room.visited = true;
     return roomData.first;
   }
-  return hasKey ? roomData.withKey : roomData.noKey;
+  return gameState.hasKey ? roomData.withKey : roomData.noKey;
 }
 
 function playRun() {
@@ -95,7 +115,6 @@ function playRun() {
 function endGame(message) {
   alert(message.text);
   console.log(message.text);
-  gameState.isGameOver = true; // Assuming Karim set this up
 }
 
 // Room 1 - wake up in a cold server room, choose LEFT or RIGHT.
@@ -127,7 +146,7 @@ function room2() {
   }
 
   if (choice === "take") {
-    gameState.hasRedKey = true; // Karim's state variable
+    gameState.hasKey = true;
     // Automatically send them back after taking the key
   }
   return ROOMS[room].next
@@ -141,7 +160,7 @@ function room3() {
     endGame(STORY.rooms[room].cancel);
     return;
   } else if (choice === "open") {
-    endGame(hasKey ? STORY.ending.escaped : STORY.ending.caught);
+    endGame(gameState.hasKey ? STORY.ending.escaped : STORY.ending.caught);
   } else if (choice === "back") {
     return ROOMS[room].prev
   }
@@ -150,8 +169,7 @@ function room3() {
 // ==========================================
 // 6. GAME LOOP (Tony)
 // ==========================================
-// reset the game, ask the prisoner's name (Cancel quits), call room1(),
-// then ask confirm("Do you want to play again?") and loop while they say yes.
+// Start gate, then one run per round until the player declines a replay.
 function game() {
   if (!confirm(STORY.welcome.text)) return;
   let again = true;

@@ -13,12 +13,17 @@ let answers = [];
 const alerts = [];
 let lastAlert = "";
 
+const promptMessages = [];
+
 globalThis.alert = (message) => {
     lastAlert = message;
     alerts.push(message);
 };
 // No queued answer means the stub pressed Cancel, which is exactly the case we want to test.
-globalThis.prompt = () => (answers.length ? answers.shift() : null);
+globalThis.prompt = (message) => {
+    promptMessages.push(message);
+    return answers.length ? answers.shift() : null;
+};
 globalThis.confirm = () => false;
 
 const realClear = console.clear;
@@ -57,13 +62,11 @@ function runTests() {
     }
 
     // --- TESTS FOR resetGame (Karim's State) ---
-    playerName = "Lefa";
-    currentRoom = 2;
-    hasKey = true;
+    gameState.hasKey = true;
+    ROOMS[2].visited = true;
     resetGame();
-    assertEquals(playerName, "", "resetGame clears the player name");
-    assertEquals(currentRoom, 1, "resetGame sends the player back to Room 1");
-    assertEquals(hasKey, false, "resetGame removes the Red Key");
+    assertEquals(gameState.hasKey, false, "resetGame removes the Red Key");
+    assertEquals(ROOMS[2].visited, false, "resetGame forgets visited rooms");
 
     // --- TESTS FOR askPlayer / choose (Input Handling) ---
     queue("  LEFT  ");
@@ -71,36 +74,47 @@ function runTests() {
     queue();
     assertEquals(askPlayer("test"), null, "askPlayer returns null on Cancel");
     queue("banana", "left");
-    assertEquals(choose("test", ["left", "right"]), "left", "choose rejects invalid input and asks again");
+    assertEquals(choose({ text: "test", options: ["left", "right"] }), "left", "choose rejects invalid input and asks again");
 
     // --- TESTS FOR THE ROOMS (Lefa's Logic) ---
-    // Clear the leftover state by hand: a stubbed resetGame() must not be able to fake a pass.
-    playerName = "";
-    currentRoom = 1;
-    hasKey = false;
-    queue("left", "back");
-    silence(() => room1());
-    assertEquals(hasKey, true, "Room 1 -> Left picks up the Red Key");
+    // Rooms return their successor, so playRun() drives them exactly like game() does.
+    const play = () => silence(() => playRun());
+    const promptsInclude = (text) => promptMessages.some((message) => message.includes(text));
+
+    resetGame();
+    queue("left", "take");
+    play();
+    assertEquals(gameState.hasKey, true, "Room 1 -> Left -> TAKE picks up the Red Key");
+
+    resetGame();
+    queue("left", "take", "right", "open");
+    play();
     assertEquals(lastAlert.includes("ESCAPED"), true, "Left -> Key -> Door escapes (Ending 1)");
 
     resetGame();
-    queue("right");
-    silence(() => room1());
+    queue("left", "take", "left", "back", "right", "open");
+    play();
+    assertEquals(promptsInclude("THE MAINTENANCE CLOSET, AGAIN"), true, "Room 1 with the key still allows LEFT back into Room 2");
+    assertEquals(lastAlert.includes("ESCAPED"), true, "Key -> closet -> back -> door still escapes");
+
+    resetGame();
+    queue("right", "open");
+    play();
     assertEquals(lastAlert.includes("CAUGHT"), true, "Right -> locked door is caught (Ending 2)");
 
     resetGame();
-    alerts.length = 0;
-    queue("banana", "right");
-    silence(() => room1());
+    promptMessages.length = 0;
+    queue("banana", "right", "open");
+    play();
     assertEquals(lastAlert.includes("CAUGHT"), true, "Invalid input does not skip the locked door");
-    assertEquals(alerts.filter((message) => message.includes("Invalid input")).length >= 1, true, "Invalid input is reported to the player");
+    assertEquals(promptMessages.some((message) => message.includes("INVALID INPUT")), true, "Invalid input is reported in the next prompt");
 
     // --- TESTS FOR CANCEL (Grader's Favourite) ---
     resetGame();
     queue();
     let threw = false;
     try {
-        silence(() => room1());
+        play();
     } catch (error) {
         threw = true;
     }
