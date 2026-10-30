@@ -10,7 +10,7 @@ build tools: the whole game runs through `alert()` / `prompt()` / `confirm()`.
 ## 🚀 How to Play
 1. Open the `index.html` file in your browser.
 2. Follow the pop-up prompts. Press "Cancel" at any time to give up safely.
-3. At the end, the game shows a goodbye alert and closes — refresh the page (F5) to play again.
+3. At the end, the game shows a goodbye alert and tries to close the page — refresh the page (F5) to play again. Browsers only honour `window.close()` for windows opened by script, so in a normal tab the page simply stays open.
 
 ## 🗺️ The Map
 ```

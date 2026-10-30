@@ -12,10 +12,15 @@ Keep it green — never "fix" a failing test by weakening the assertion.
 
 ## Hard constraints (lecturer-graded)
 - **No DOM.** No `document.*`, no `querySelector`, no event listeners, no `innerHTML`.
-  All interaction is `alert()` / `prompt()` / `confirm()` / `console.log()`.
+  All interaction is `alert()` / `prompt()` / `confirm()` (no `console`).
 - Vanilla JS, no build step, no deps. `index.html` loads `script.js` via
   `<script src="script.js"></script>` (classic script, not `type="module"`).
 - `game()` is called at the bottom of `script.js`; opening `index.html` starts the game.
+
+## Story strings are test contracts
+`tests.js` matches text inside `STORY`, so rewording is free but these must stay:
+endings contain `ESCAPED` / `CAUGHT`, every room `cancel` starts with `GAME OVER`,
+and `STORY.bye` starts with `Thanks for playing`.
 
 ## Function contracts
 - `computerPlay()` → exactly `"Rock"`, `"Paper"`, or `"Scissors"` (capitalized, nothing else).
