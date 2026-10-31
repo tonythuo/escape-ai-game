@@ -1,3 +1,9 @@
+// tests.js
+// Run with: node tests.js
+//
+// Why the vm call: script.js is a plain browser script with no exports, so we load it
+// into the global scope with alert/prompt/confirm stubbed. The file itself stays untouched.
+
 const fs = require("node:fs");
 const vm = require("node:vm");
 const path = require("node:path");
@@ -12,13 +18,16 @@ globalThis.alert = (message) => {
     lastAlert = message;
     alerts.push(message);
 };
+// No queued answer means the stub pressed Cancel, which is exactly the case we want to test.
 globalThis.prompt = (message) => {
     promptMessages.push(message);
     return answers.length ? answers.shift() : null;
 };
 let confirms = [];
+// No queued confirm means the stub answered Cancel/false.
 globalThis.confirm = () => confirms.length ? confirms.shift() : false;
 
+// script.js closes the page via window.close(); track the call instead of closing the test run.
 let didClose = false;
 globalThis.window = {
     close: () => { didClose = true; },
@@ -49,12 +58,14 @@ function runTests() {
         }
     }
 
+    // --- TESTS FOR resetGame (Karim's State) ---
     gameState.hasKey = true;
     ROOMS[2].visited = true;
     resetGame();
     assertEquals(gameState.hasKey, false, "resetGame removes the Red Key");
     assertEquals(ROOMS[2].visited, false, "resetGame forgets visited rooms");
 
+    // --- TESTS FOR askPlayer / choose (Input Handling) ---
     queue("  LEFT  ");
     assertEquals(askPlayer("test"), "left", "askPlayer trims and lowercases");
     queue();
@@ -62,6 +73,8 @@ function runTests() {
     queue("banana", "left");
     assertEquals(choose({ text: "test", options: ["left", "right"] }), "left", "choose rejects invalid input and asks again");
 
+    // --- TESTS FOR THE ROOMS (Lefa's Logic) ---
+    // Rooms return their successor, so playRun() drives them exactly like game() does.
     const play = () => playRun();
     const promptsInclude = (text) => promptMessages.some((message) => message.includes(text));
 
@@ -93,6 +106,7 @@ function runTests() {
     assertEquals(lastAlert.includes("CAUGHT"), true, "Invalid input does not skip the locked door");
     assertEquals(promptMessages.some((message) => message.includes("INVALID INPUT")), true, "Invalid input is reported in the next prompt");
 
+    // --- TESTS FOR CANCEL (Grader's Favourite) ---
     resetGame();
     queue();
     let threw = false;
@@ -104,6 +118,8 @@ function runTests() {
     assertEquals(threw, false, "Cancel in Room 1 does not crash");
     assertEquals(lastAlert.startsWith("GAME OVER"), true, "Cancel in Room 1 ends the game safely");
 
+    // --- TESTS FOR THE PAGE CLOSE (the program closes after the bye alert) ---
+    // game() itself runs the welcome gate, the replay loop and the closing alert.
     alerts.length = 0;
     lastAlert = "";
     didClose = false;

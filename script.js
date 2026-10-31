@@ -1,3 +1,9 @@
+// ==========================================
+// 1. STORY TEXT (Tony)
+// ==========================================
+// All wording lives here so the story can be rewritten without touching the game logic.
+// Tests match these strings: endings contain ESCAPED / CAUGHT, every room cancel text
+// starts with GAME OVER, and STORY.bye starts with "Thanks for playing".
 const STORY = {
   welcome: { text: "Welcome to Escape the Evil AI!\n\nYou are trapped in the machine. Read each pop-up, make your choice, and find a way out.\n\nPress OK to start, or Cancel to quit." },
 
@@ -32,6 +38,11 @@ const STORY = {
   bye: { text: "Thanks for playing Escape the Evil AI!" }
 };
 
+// ==========================================
+// 2. GAME STATE (Karim)
+// ==========================================
+// ROOMS references the room functions before they are declared; that only works
+// because function declarations hoist, so keep them as `function` declarations.
 const ROOMS = [
   null,
   { visited: false, next: room3, prev: room2 },
@@ -39,10 +50,12 @@ const ROOMS = [
   { visited: false, prev: room1 },
 ];
 
+// Tracks what the player carries between rooms.
 const gameState = {
   hasKey: false,
 };
 
+/** Clears all round state, so a replay never starts with the previous run's key or history. */
 function resetGame() {
   gameState.hasKey = false;
   ROOMS.forEach((room) => {
@@ -50,12 +63,27 @@ function resetGame() {
   });
 }
 
+// ==========================================
+// 3. INPUT HELPERS (Karim)
+// ==========================================
+/**
+ * Reads one line of player input, trimmed and lowercased.
+ * @param {string} message - The prompt text to show.
+ * @returns {string|null} The normalized answer, or null if the player pressed Cancel.
+ */
 function askPlayer(message) {
   const input = prompt(message);
   if (input === null) return null;
   return input.trim().toLowerCase();
 }
 
+/**
+ * Keeps asking until the player picks one of the valid options.
+ * The invalid-input note goes into the next prompt rather than its own alert,
+ * so the player never gets two dialogs in a row.
+ * @param {{text: string, options: string[]}} promptData - The question and its valid answers.
+ * @returns {string|null} The chosen option, or null on Cancel.
+ */
 function choose(promptData) {
   let note = "";
   while (true) {
@@ -66,6 +94,12 @@ function choose(promptData) {
   }
 }
 
+/**
+ * Picks the right prompt for a room: the first visit, or the repeat variant
+ * depending on whether the player carries the Red Key. Marks the room visited.
+ * @param {number} roomNumber - Room 1, 2 or 3.
+ * @returns {{text: string, options: string[]}} The prompt to show.
+ */
 function promptFor(roomNumber) {
   const room = ROOMS[roomNumber];
   const roomData = STORY.rooms[roomNumber];
@@ -76,6 +110,13 @@ function promptFor(roomNumber) {
   return gameState.hasKey ? roomData.withKey : roomData.noKey;
 }
 
+// ==========================================
+// 4. RUN LOOP & ROOMS (Lefa)
+// ==========================================
+/**
+ * Drives one full run: each room returns the next room function, or undefined
+ * when the run ends (an ending was shown or the player pressed Cancel).
+ */
 function playRun() {
   let step = room1;
   while (step) {
@@ -83,14 +124,27 @@ function playRun() {
   }
 }
 
+/**
+ * Shows one full-screen story message: an ending or a game over.
+ * @param {{text: string}} message - One of the STORY message objects.
+ */
 function endGame(message) {
   alert(message.text);
 }
 
+/**
+ * Shows a room's GAME OVER text after the player pressed Cancel there.
+ * @param {number} room - The room number the player cancelled in.
+ */
 function quitRoom(room) {
   endGame(STORY.rooms[room].cancel);
 }
 
+/**
+ * Room 1 - wake up in a cold server room. LEFT leads to Room 2 (the closet),
+ * RIGHT to Room 3 (the exit).
+ * @returns {Function|undefined} The next room function, or undefined to end the run.
+ */
 function room1() {
   const room = 1;
   const choice = choose(promptFor(room));
@@ -98,6 +152,10 @@ function room1() {
   return choice === "left" ? ROOMS[room].prev : ROOMS[room].next;
 }
 
+/**
+ * Room 2 - the maintenance closet. TAKE picks up the Red Key and moves on.
+ * @returns {Function|undefined} The next room function, or undefined to end the run.
+ */
 function room2() {
   const room = 2;
   const choice = choose(promptFor(room));
@@ -106,6 +164,11 @@ function room2() {
   return ROOMS[room].next;
 }
 
+/**
+ * Room 3 - the locked exit door. OPEN ends the run: escaped with the Red Key,
+ * caught without it.
+ * @returns {Function|undefined} The next room function, or undefined to end the run.
+ */
 function room3() {
   const room = 3;
   const choice = choose(promptFor(room));
@@ -116,28 +179,41 @@ function room3() {
   return ROOMS[room].prev;
 }
 
+// ==========================================
+// 5. GAME LOOP (Tony)
+// ==========================================
+/**
+ * Asks the browser to close the page. Browsers only honour window.close() for
+ * windows opened by script, so in a normal tab this is a quiet no-op and the
+ * bye alert is what the player actually sees.
+ */
 function closePage() {
   window.close();
 }
 
+/** Shows the welcome gate. @returns {boolean} True when the player pressed OK. */
 function welcome() {
   return confirm(STORY.welcome.text);
 }
 
+/** Asks for a replay after an ending. @returns {boolean} True to run the game again. */
 function askReplay() {
   return confirm(STORY.replay.text);
 }
 
+/** One full round: fresh state, then one run through the rooms. */
 function playRound() {
   resetGame();
   playRun();
 }
 
+/** Says goodbye and closes the page. */
 function exitGame() {
   alert(STORY.bye.text);
   closePage();
 }
 
+/** Runs the whole game: welcome gate, one run per replay, goodbye at the end. */
 function game() {
   if (!welcome()) return exitGame();
   let again = true;
@@ -148,4 +224,7 @@ function game() {
   exitGame();
 }
 
+// ==========================================
+// 6. START THE GAME
+// ==========================================
 game();
