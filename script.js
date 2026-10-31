@@ -1,8 +1,3 @@
-// ==========================================
-// 1. STORY TEXT (Tony)
-// ==========================================
-// All wording lives here so the story can be rewritten without touching the game logic.
-// Keep the words ESCAPED / CAUGHT, and start every Cancel message with GAME OVER (tests check them).
 const STORY = {
   welcome: { text: "Welcome to Escape the Evil AI!\n\nYou are trapped in the machine. Read each pop-up, make your choice, and find a way out.\n\nPress OK to start, or Cancel to quit." },
 
@@ -34,31 +29,20 @@ const STORY = {
 
   replay: { text: "Do you want to play again?" },
 
-  // Shown before the page closes, on a cancelled welcome and after the last run.
   bye: { text: "Thanks for playing Escape the Evil AI!" }
 };
 
-// ==========================================
-// 2. TEAM INSTRUCTIONS (UX - Tony)
-// ==========================================
-// Welcome is the start gate inside game(), so nothing is shown before it.
-
-// ==========================================
-// 3. GAME STATE (Karim)
-// ==========================================
-// Room graph: index = room number, so index 0 is unused.
 const ROOMS = [
   null,
   { visited: false, next: room3, prev: room2 },
   { visited: false, next: room1 },
-  { visited: false, prev: room1 },   // open is handled in room3()
+  { visited: false, prev: room1 },
 ];
 
 const gameState = {
   hasKey: false,
 };
 
-// Runs before every round, so a replay never starts with the previous round's key or history.
 function resetGame() {
   gameState.hasKey = false;
   ROOMS.forEach((room) => {
@@ -66,19 +50,12 @@ function resetGame() {
   });
 }
 
-// ==========================================
-// 4. HELPER FUNCTIONS (Karim)
-// ==========================================
-// Returns the answer trimmed and lowercased, or null if the player pressed Cancel.
 function askPlayer(message) {
   const input = prompt(message);
   if (input === null) return null;
   return input.trim().toLowerCase();
 }
 
-// Keeps asking until the player picks one of promptData.options. Returns null on Cancel.
-// The invalid-input note goes into the next prompt rather than its own alert, so the
-// player never gets two dialogs in a row.
 function choose(promptData) {
   let note = "";
   while (true) {
@@ -100,100 +77,75 @@ function promptFor(roomNumber) {
 }
 
 function playRun() {
-  let step = room1
+  let step = room1;
   while (step) {
-    step = step()
+    step = step();
   }
 }
 
-// ==========================================
-// 5. ROOMS (Lefa)
-// ==========================================
-// Map: Room 1 (Start) --LEFT--> Room 2 (Red Key) --BACK--> Room 3 (locked door)
-//      Room 1 --RIGHT--> Room 3
-//      Room 3: hasKey -> ESCAPED, otherwise CAUGHT
-
-// announce the ending, then log it.
 function endGame(message) {
   alert(message.text);
 }
 
-// Room 1 - wake up in a cold server room, choose LEFT or RIGHT.
+function quitRoom(room) {
+  endGame(STORY.rooms[room].cancel);
+}
+
 function room1() {
-  // Use Tony's choose() helper. We pass the question and the valid options.
-  let room = 1;
-  let choice = choose(promptFor(room));
-
-  if (choice === null) {
-    endGame(STORY.rooms[room].cancel);
-    return;
-  }
-
-  if (choice === "left") {
-    return ROOMS[room].prev
-  } else if (choice === "right") {
-    return ROOMS[room].next
-  }
+  const room = 1;
+  const choice = choose(promptFor(room));
+  if (choice === null) return quitRoom(room);
+  return choice === "left" ? ROOMS[room].prev : ROOMS[room].next;
 }
 
-// Room 2 - find the Red Key, then head back to the door.
 function room2() {
-  let room = 2;
-  let choice = choose(promptFor(room));
-
-  if (choice === null) {
-    endGame(STORY.rooms[room].cancel);
-    return;
-  }
-
-  if (choice === "take") {
-    gameState.hasKey = true;
-    // Automatically send them back after taking the key
-  }
-  return ROOMS[room].next
+  const room = 2;
+  const choice = choose(promptFor(room));
+  if (choice === null) return quitRoom(room);
+  if (choice === "take") gameState.hasKey = true;
+  return ROOMS[room].next;
 }
 
-// Room 3 - locked door: escaped with the key, caught without it.
 function room3() {
-  let room = 3;
-  let choice = choose(promptFor(room));
-  if (choice === null) {
-    endGame(STORY.rooms[room].cancel);
-    return;
-  } else if (choice === "open") {
-    endGame(gameState.hasKey ? STORY.ending.escaped : STORY.ending.caught);
-  } else if (choice === "back") {
-    return ROOMS[room].prev
+  const room = 3;
+  const choice = choose(promptFor(room));
+  if (choice === null) return quitRoom(room);
+  if (choice === "open") {
+    return endGame(gameState.hasKey ? STORY.ending.escaped : STORY.ending.caught);
   }
+  return ROOMS[room].prev;
 }
 
-// ==========================================
-// 6. GAME LOOP (Tony)
-// ==========================================
-// Start gate, then one run per round until the player declines a replay.
-// window.close() only works on script-opened windows; in a normal tab it is a
-// no-op, so the bye alert always tells the player to refresh to play again.
 function closePage() {
   window.close();
 }
 
-function game() {
-  if (!confirm(STORY.welcome.text)) {
-    alert(STORY.bye.text);
-    closePage();
-    return;
-  }
-  let again = true;
-  while (again) {
-    resetGame();
-    playRun();
-    again = confirm(STORY.replay.text);
-  }
+function welcome() {
+  return confirm(STORY.welcome.text);
+}
+
+function askReplay() {
+  return confirm(STORY.replay.text);
+}
+
+function playRound() {
+  resetGame();
+  playRun();
+}
+
+function exitGame() {
   alert(STORY.bye.text);
   closePage();
 }
 
-// ==========================================
-// 7. START THE GAME
-// ==========================================
+function game() {
+  if (!welcome()) return exitGame();
+  let again = true;
+  while (again) {
+    playRound();
+    again = askReplay();
+  }
+  exitGame();
+}
+
 game();
